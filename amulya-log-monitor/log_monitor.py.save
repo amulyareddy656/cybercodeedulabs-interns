@@ -1,0 +1,8 @@
+LOG_FILE="/var/log/auth.log"
+file=open(LOG_FILE,"r")
+for line in file:
+	if "Failed password for" in line:
+		print("SSH_FAILURE")
+		print(line)
+
+file.close()
