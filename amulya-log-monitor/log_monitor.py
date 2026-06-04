@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 LOG_FILE="/var/log/auth.log"
 def extract_ip(line):
 	ip_match=re.search(r'(\d+\.\d+\.\d+\.\d+)',line)
@@ -13,21 +14,22 @@ def extract_user(line):
 file=open(LOG_FILE,"r")
 for line in file:
 	if "Failed password for root" in line:
-		print("ROOT_ATTACK | HIGH")
+		event_type="ROOT_ATTACK"
+		severity="HIGH"
 		ip=extract_ip(line)
-		print("IP:",ip)
 		user=extract_user(line)
-		print("User:",user)
 	elif "Failed password for" in line or "Invalid user" in line:
-		print("SSH_FAILURE | MEDIUM")
+		event_type="SSH_FAILURE"
+		severity="MEDIUM"
 		ip=extract_ip(line)
-		print("IP:",ip)
 		user=extract_user(line)
-		print("User:",user)
 	elif "Accepted password" in line or "Accepted publickey" in line:
-		print("LOGIN_SUCCESS | LOW")
+		event_type="LOGIN_SUCCESS"
+		severity="LOW"
 		ip=extract_ip(line)
-		print("IP:",ip)
 		user=extract_user(line)
-		print("User:",user)
+	else:
+		continue
+	timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	print(f"[{timestamp}] {event_type} | {severity} | IP: {ip} | User: {user}")
 file.close()
