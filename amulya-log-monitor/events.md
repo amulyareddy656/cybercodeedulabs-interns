@@ -2,8 +2,8 @@
 
 | Time | Event Type | Severity | Source IP |
 |------|------------|----------|-----------|
-| 2026-06-12T06:56:54.211Z | process_anomaly | HIGH |  |
-| 2026-06-12T06:56:53.601Z | process_anomaly | HIGH |  |
+| 2026-06-12T06:56:54.211Z | process_anomaly | HIGH | Unknown |
+| 2026-06-12T06:56:53.601Z | process_anomaly | HIGH | Unknown |
 | 2026-06-12T06:56:42.708Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:56:41.295Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:56:40.690Z | http_probe | MEDIUM | 185.220.101.47 |
@@ -58,8 +58,8 @@
 | 2026-06-12T06:55:21.313Z | ssh_failure | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:55:20.308Z | ssh_failure | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:55:19.504Z | ssh_failure | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:54:44.084Z | process_anomaly | HIGH |  |
-| 2026-06-12T06:54:43.272Z | process_anomaly | HIGH |  |
+| 2026-06-12T06:54:44.084Z | process_anomaly | HIGH | Unknown |
+| 2026-06-12T06:54:43.272Z | process_anomaly | HIGH | Unknown |
 | 2026-06-12T06:54:32.395Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:54:31.349Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:54:29.859Z | http_probe | MEDIUM | 185.220.101.47 |
@@ -114,8 +114,8 @@
 | 2026-06-12T06:53:02.407Z | ssh_failure | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:53:01.401Z | ssh_failure | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:53:00.193Z | ssh_failure | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:52:24.485Z | process_anomaly | HIGH |  |
-| 2026-06-12T06:52:20.591Z | process_anomaly | HIGH |  |
+| 2026-06-12T06:52:24.485Z | process_anomaly | HIGH | Unknown |
+| 2026-06-12T06:52:20.591Z | process_anomaly | HIGH | Unknown |
 | 2026-06-12T06:52:09.006Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:52:07.790Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:52:06.537Z | http_probe | MEDIUM | 185.220.101.47 |
@@ -170,17 +170,14 @@
 | 2026-06-12T06:50:28.515Z | ssh_failure | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:50:27.310Z | ssh_failure | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:50:26.304Z | ssh_failure | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:49:50.664Z | process_anomaly | HIGH |  |
-| 2026-06-12T06:49:49.849Z | process_anomaly | HIGH |  |
-| 2026-06-12T06:49:45.654Z | heartbeat | LOW |  |
+| 2026-06-12T06:49:50.664Z | process_anomaly | HIGH | Unknown |
+| 2026-06-12T06:49:49.849Z | process_anomaly | HIGH | Unknown |
 | 2026-06-12T06:49:38.976Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:37.766Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:36.962Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:35.953Z | http_probe | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:49:35.642Z | heartbeat | LOW |  |
 | 2026-06-12T06:49:33.094Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:32.089Z | http_probe | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:49:25.624Z | heartbeat | LOW |  |
 | 2026-06-12T06:49:21.408Z | firewall_block | LOW | 185.220.101.47 |
 | 2026-06-12T06:49:21.385Z | port_scan | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:20.603Z | firewall_block | LOW | 185.220.101.47 |
@@ -193,10 +190,8 @@
 | 2026-06-12T06:49:18.163Z | port_scan | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:17.984Z | firewall_block | LOW | 185.220.101.47 |
 | 2026-06-12T06:49:17.962Z | port_scan | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:49:15.614Z | heartbeat | LOW |  |
 | 2026-06-12T06:49:06.210Z | firewall_block | LOW | 185.220.101.47 |
 | 2026-06-12T06:49:06.036Z | port_scan | MEDIUM | 185.220.101.47 |
-| 2026-06-12T06:49:05.603Z | heartbeat | LOW |  |
 | 2026-06-12T06:49:04.619Z | port_scan | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:04.596Z | firewall_block | LOW | 185.220.101.47 |
 | 2026-06-12T06:49:03.003Z | port_scan | MEDIUM | 185.220.101.47 |
