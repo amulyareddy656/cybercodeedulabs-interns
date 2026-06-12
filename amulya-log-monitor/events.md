@@ -1,8 +1,13 @@
+# LIVE MONITOR REPORT
+
+Monitored from 12:19 PM to 12:27 PM on 12-06-2026
+Total events observer: 195
+
 # Live Monitor Events
 
 | Time | Event Type | Severity | Source IP |
 |------|------------|----------|-----------|
-| 2026-06-12T06:56:54.211Z | process_anomaly | HIGH | Unknown |
+| 2026-06-12T06:56:54 | process_anomaly | HIGH | Unknown |
 | 2026-06-12T06:56:53.601Z | process_anomaly | HIGH | Unknown |
 | 2026-06-12T06:56:42.708Z | http_probe | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:56:41.295Z | http_probe | MEDIUM | 185.220.101.47 |
@@ -197,3 +202,22 @@
 | 2026-06-12T06:49:03.003Z | port_scan | MEDIUM | 185.220.101.47 |
 | 2026-06-12T06:49:02.983Z | firewall_block | LOW | 185.220.101.47 |
 | 2026-06-12T06:49:01.595Z | port_scan | MEDIUM | 185.220.101.47 |
+
+Top 3 most event types observed:
+Port scan - 58
+Firewall block-57
+Brute force - 27
+
+The event that surprised me was the Brute Force attack. I observed that after several consecutive SSH failure events from the same IP address, the system automatically classified the activity as a brute-force attack. This demonstrated how security monitoring systems identify repeated attack patterns and raise higher-priority alerts.
+
+
+
+# Classifying 5 security events based on MITRE ATT&CK framework
+
+| Event Observed | Tactic | Technique ID | Technique Name | Kill Chain Stage |
+|----------------|--------|--------------|----------------|------------------|
+| Brute force | Credential access | T1110 | Brute force | Delivery |
+| SSH Failure | Credential access | T1110.001 | Password Guessing | Delivery |
+| Root attack | Initial access | T1078.003 | Local accounts | Exploitation |
+| Process anomaly | Privilage escalation | T1055 | Process injection | Installation |
+| Port scan | Reconnaissance | T1595.001 | Scanning IP blocks | Reconnaissance |
