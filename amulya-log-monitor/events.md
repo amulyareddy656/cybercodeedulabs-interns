@@ -219,5 +219,5 @@ The event that surprised me was the Brute Force attack. I observed that after se
 | Brute force | Credential access | T1110 | Brute force | Delivery |
 | SSH Failure | Credential access | T1110.001 | Password Guessing | Delivery |
 | Root attack | Initial access | T1078.003 | Local accounts | Exploitation |
-| Process anomaly | Privilage escalation | T1055 | Process injection | Installation |
+| Process anomaly | Stealth | T1055 | Process injection | Installation |
 | Port scan | Reconnaissance | T1595.001 | Scanning IP blocks | Reconnaissance |
