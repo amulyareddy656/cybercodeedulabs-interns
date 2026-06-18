@@ -1,0 +1,110 @@
+import re
+import time
+from datetime import datetime
+
+auth_log="/var/log/auth.log"
+sys_log="/var/log/syslog"
+
+def extract_ip(line):
+	ip_match=re.search(r'(\d+\.\d+\.\d+\.\d+)',line)
+	if ip_match:
+		return ip_match.group(1)
+
+def extract_user(line):
+	patterns=[ r'for (\w+)' ]
+	for pattern in patterns:
+		match=re.search(pattern,line)
+		if match:
+			return match.group(1)
+
+def detect_ufw(line):
+	if "[UFW BLOCK" nit in line:
+		return None
+	src_match=re.search(r'SRC=(\d+\.\d+\.\d+\.\d+)',line)
+	dpt_match=re.search(r'DPT=(\d+)',line)
+	if src_match and dpt_match:
+		return src_match.group(1), dpt_match.group(1)
+	return None
+
+def record_event(event_type,severity,ip):
+	global highest_severity
+	global highest_event
+	event_count[event_type]=(event_count.get(event_type,0)+1)
+	ip_count[ip]=(ip_count.get(ip,0)+1)
+	if severity_rank[severity] > severity_rank[highest_severity]:
+		highest_severity=severity
+		highest_event=event_type
+	if event_type in kill_chain:
+		if ip not in ip_data:
+			ip_data[ip] ={"events":[], "stages":set() }
+		ip_data[ip]["events"].append(event_type)
+		ip_data[ip]["stages"].add(kill_chain[event_type])
+
+def calculate_score(ip):
+	score=0
+	events=ip_data[ip]["events"]
+	for event in set(events):
+		count=events.count(event)
+		weight=attack_weights[event]
+		if count<=3:
+			multiplier=1
+		elif count<=9:
+			multiplier=1.5
+		else:
+			multiplier=
+ip_failure={}
+event_count={}
+ip_count={}
+highest_severity="LOW"
+highest_event="NONE"
+severity_rank={ "LOW" : 1, "MEDIUM" : 2, "HIGH" : 3, "CRITICAL" : 4}
+port_scan_dict={}
+ip_data={}
+kill_chain={ "PORT_SCAN" : "RECONNAISSANCE(1)" , "SSH_FAILURE" : "DELIVERY(3)" , "BRUTE_FORCE" : "DELIVERY(3)" , "ROOT_ATTACK" : "EXPLOITATION(4)"}
+attack_weights={ "PORT_SCAN" : 1, "SSH_FAILURE" : 3, "BRUTE_FORCE" : 5, "ROOT_ATTACK" : 8}
+
+try:
+	file=open(LOG_FILE,"r")
+	file.seek(0,2)
+	while True:
+		line=file.readline()
+		if not line:
+			time.sleep(0.5)
+			continue
+		if "Failed password for root" in line:
+			event_type="ROOT_ATTACK"
+			severity="HIGH"
+			ip=extract_ip(line)
+			user=extract_user(line)
+		elif "Failed password for" in line or "Invalid user" in line:
+			event_type="SSH_FAILURE"
+			severity="MEDIUM"
+			ip=extract_ip(line)
+			user=extract_user(line)
+		elif "Accepted password" in line or "Accepted publickey" in line:
+			event_type="LOGIN_SUCCESS"
+			severity="LOW"
+			ip=extract_ip(line)
+			user=extract_user(line)
+		else:
+			continue
+		timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		if event_type=="SSH_FAILURE":
+			key=extract_ip(line)
+			value=datetime.now()
+			if key not in ip_failure:
+				ip_failure[key]=[]
+			ip_failure[key].append(value)
+			while ip_failure[key]:
+				timestamp_difference=value-ip_failure[key][0]
+				if(timestamp_difference.total_seconds()>=60):
+					ip_failure[key].pop(0)
+				else:
+					break
+			if len(ip_failure[key])>=5:
+				print(f"[{timestamp}] BRUTE_FORCE | HIGH | IP : {ip} | 5 failures in 60 seconds")
+		#print(f"[{timestamp}] {event_type} | {severity} | IP: {ip} | User: {user}")
+except KeyboardInterrupt:
+	print("Stop monitoring")
+finally:
+	file.close()
