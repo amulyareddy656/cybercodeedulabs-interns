@@ -5,29 +5,27 @@ from datetime import datetime
 auth_log="/var/log/auth.log"
 sys_log="/var/log/syslog"
 
-#Extracting ip address from auth.log
 def extract_ip(line):
 	ip_match=re.search(r'(\d+\.\d+\.\d+\.\d+)',line)
 	if ip_match:
 		return ip_match.group(1)
-
-#Extracting username from auth.log
+	print("1")
 def extract_user(line):
 	patterns=[ r'for (\w+)' ]
 	for pattern in patterns:
 		match=re.search(pattern,line)
 		if match:
 			return match.group(1)
-
-#Extracting source ip and destination port from syslog
+	print("2")
 def detect_ufw(line):
-	if "[UFW BLOCK]" in line:
-		src_match=re.search(r'SRC=(\d+\.\d+\.\d+\.\d+)',line)
-		dpt_match=re.search(r'DPT=(\d+)',line)
-	if src_match and dpt_match:
-		return src_match.group(1), dpt_match.group(1)
-
-#Record the events and finding the highest sever event
+        if "[UFW BLOCK]" not in line:
+                return None
+        src_match=re.search(r'SRC=(\d+\.\d+\.\d+\.\d+)',line)
+        dpt_match=re.search(r'DPT=(\d+)',line)
+        if src_match and dpt_match:
+                return src_match.group(1), dpt_match.group(1)
+        return None
+        print("3")
 def record_event(event_type,severity,ip):
         global highest_severity
         global highest_event
@@ -41,8 +39,7 @@ def record_event(event_type,severity,ip):
                         ip_data[ip] ={"events":[], "stages":set() }
                 ip_data[ip]["events"].append(event_type)
                 ip_data[ip]["stages"].add(kill_chain[event_type])
-
-#Calculating priority score based on the weights and frequency of the event type
+        print("4")
 def calculate_score(ip):
 	score=0
 	events=ip_data[ip]["events"]
@@ -71,7 +68,7 @@ def calculate_score(ip):
 		priority="Critical"
 		recommendation="Block the IP immediately"
 	return score,priority,recommendation
-
+	print("5")
 ip_failure={}
 event_count = {}
 ip_count = {}
@@ -97,15 +94,17 @@ attack_weights = {
     "BRUTE_FORCE": 5,
     "ROOT_ATTACK": 8
 }
-
-#Detecting the events like ssh failure, root attack, login successful, brute force, port scan and printing the summary for every 60 seconds.
+print("Before try")
 try:
+	print("After try")
 	auth_file=open(auth_log,"r")
+	print("auth")
 	auth_file.seek(0,2)
 	sys_file=open(sys_log,"r")
+	print("sys")
 	sys_file.seek(0,2)
+	print("opening files")
 	last_report=time.time()
-	print("Monitoring started")
 
 	while True:
 		auth_line=auth_file.readline()
@@ -113,6 +112,7 @@ try:
 		if not auth_line and not sys_line:
 			time.sleep(0.5)
 			continue
+		print("Monitoring started")
 		if "Failed password for root" in auth_line:
 			event_type="ROOT_ATTACK"
 			severity="HIGH"
@@ -130,12 +130,11 @@ try:
 			severity="LOW"
 			ip=extract_ip(auth_line)
 			user=extract_user(auth_line)
-		#else:
-			#continue
+		else:
+			continue
 		timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		print(f"[{timestamp}] {event_type} | {severity} | IP : {ip} | User : {user}")
 
-		#Brute force detection logic
 		if event_type=="SSH_FAILURE":
 			key=extract_ip(auth_line)
 			value=datetime.now()
@@ -154,34 +153,30 @@ try:
 				record_event(event_type,severity,ip)
 				print(f"[{timestamp}] {event_type} | {severity} | IP : {ip} | 5 failures in 60 seconds")
 
-		#Port scan detection logic
-		print(sys_line)
-		result=detect_ufw(sys_line)
-		if result:
-			print(result)
-			src_ip,dpt=result
-			if src_ip not in port_scan_dict:
-				port_scan_dict[src_ip]=set()
-			port_scan_dict[src_ip].add(dpt)
-			print("PORTS =", port_scan_dict[src_ip])
-			if dpt=="22":
-				severity="HIGH"
-			elif dpt in ["3306" , "5432"]:
-				severity="CRITICAL"
-			else:
-				severity="MEDIUM"
-			event_type="UFW_BLOCK"
-			print(f"[{timestamp}] {event_type} | {severity} | SRC_IP : {src_ip} | DPT : {dpt}")
-			record_event(event_type,severity,src_ip)
-			if len(port_scan_dict[src_ip])>=3:
-				event_type="PORT_SCAN"
-				severity="MEDIUM"
-				print(f"[{timestamp}] {event_type} | {severity} | IP : {src_ip}")
+		if sys_line:
+			result=detect_ufw(sys_line)
+			if result:
+				src_ip,dpt=result
+				if src_ip not in port_scan_dict:
+					port_scan_dict[src_ip]=set()
+				port_scan[src_ip].add(dpt)
+				if dpt=="22":
+					severity="HIGH"
+				elif dpt in ["3306" , "5432"]:
+					severity="CRITICAL"
+				else:
+					severity="MEDIUM"
+				event_type="UFW_BLOCK"
+				print(f"[{timestamp}] {event_type} | Severity : {severity} | SRC_IP : {src_ip} | DPT : {dpt}")
 				record_event(event_type,severity,src_ip)
+				if len(port_scn_dict[src_ip])>=3:
+					event_type="PORT_SCAN"
+					severity="MEDIUM"
+					print(f"[{timestamp}] {event_type} | Severity : {severity} | IP : {src_ip}")
+					record_event(event_type,severity,src_ip)
 
-		#Printing the summary like total event types, top 3 attackin ips, highest severe event, priority score.
 		if time.time()-last_report>=60:
-			print("\n=======SUMMARY=======\n")
+			print("\nSUMMARY\n")
 			print("Total event types")
 			for event,count in event_count.items():
 				print(f"{event} : {count}")
@@ -191,22 +186,15 @@ try:
 				max_ip=max(temp,key=temp.get)
 				print(max_ip,temp[max_ip])
 				del temp[max_ip]
-			print("\nHighest severity event")
+			print("\n Highest severity event")
 			print(highest_event," | ",highest_severity)
 			for ip in ip_data:
 				score,priority,recommendation=calculate_score(ip)
 				print(f"IP : {ip} | Score : {score} | Priority : {priority} | Recommendation : {recommendation}")
-			event_count.clear()
-			ip_count.clear()
-			ip_data.clear()
-			ip_failure.clear()
-			port_scan_dict.clear()
-			highest_severity = "LOW"
-			highest_event = "None"
 			last_report=time.time()
 
 except Exception as e:
-	print("Error: ",e)
+	print("S")
 finally:
 	auth_file.close()
 	sys_file.close()
