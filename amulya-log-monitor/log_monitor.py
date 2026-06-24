@@ -19,13 +19,50 @@ def extract_user(line):
 		if match:
 			return match.group(1)
 
+def detect_auth_event(line):
+	if "Failed password for root" in line:
+		event_type="ROOT_ATTACK"
+		severity="HIGH"
+		ip=extract_ip(line)
+		user=extract_user(line)
+		record_event(event_type,severity,ip)
+		return event_type, severity, ip, user
+	elif "Failed password for" in line or "Invalid user" in line:
+		event_type="SSH_FAILURE"
+		severity="MEDIUM"
+		ip=extract_ip(line)
+		user=extract_user(line)
+		record_event(event_type,severity,ip)
+		return event_type, severity, ip, user
+	elif "Accepted password" in line or "Accepted publickey" in line:
+		event_type="LOGIN_SUCCESS"
+		severity="LOW"
+		ip=extract_ip(line)
+		user=extract_user(line)
+		return event_type,severity,ip,user
+	return None
 #Extracting source ip and destination port from syslog
 def detect_ufw(line):
 	if "[UFW BLOCK]" in line:
 		src_match=re.search(r'SRC=(\d+\.\d+\.\d+\.\d+)',line)
 		dpt_match=re.search(r'DPT=(\d+)',line)
-	if src_match and dpt_match:
-		return src_match.group(1), dpt_match.group(1)
+		if src_match and dpt_match:
+			return src_match.group(1), dpt_match.group(1)
+	return None
+
+def detect_sql_injection(line):
+	patterns=["UNION" , "SELECT" , "DROP" , "OR 1=1"]
+	for pattern in patterns:
+		if pattern.lower() in line.lower():
+			return True
+	return False
+
+#def detect_hhtp_probe(line):
+#	patterns=["/admin", "/phpmyadmin", "/test", "/login", "/wp-admin", "/.env"]
+#	for pattern in patterns:
+#		if pattern.lower() in line.lower():
+#			return True
+#	return False
 
 #Record the events and finding the highest sever event
 def record_event(event_type,severity,ip):
@@ -89,13 +126,17 @@ kill_chain = {
     "PORT_SCAN": "RECONNAISSANCE(1)",
     "SSH_FAILURE": "DELIVERY(3)",
     "BRUTE_FORCE": "DELIVERY(3)",
-    "ROOT_ATTACK": "EXPLOITATION(4)"
+    "ROOT_ATTACK": "EXPLOITATION(4)",
+    "SQL_INJECTION": "EXPLOITATION(4)",
+    "LATERAL_MOVEMENT": "LATERAL_MOVEMENT(5)"
 }
 attack_weights = {
     "PORT_SCAN": 1,
     "SSH_FAILURE": 3,
     "BRUTE_FORCE": 5,
-    "ROOT_ATTACK": 8
+    "ROOT_ATTACK": 8,
+    "SQL_INJECTION": 8,
+    "LATERAL_MOVEMENT": 10
 }
 
 #Detecting the events like ssh failure, root attack, login successful, brute force, port scan and printing the summary for every 60 seconds.
@@ -113,27 +154,15 @@ try:
 		if not auth_line and not sys_line:
 			time.sleep(0.5)
 			continue
-		if "Failed password for root" in auth_line:
-			event_type="ROOT_ATTACK"
-			severity="HIGH"
-			ip=extract_ip(auth_line)
-			user=extract_user(auth_line)
-			record_event(event_type,severity,ip)
-		elif "Failed password for" in auth_line or "Invalid user" in auth_line:
-			event_type="SSH_FAILURE"
-			severity="MEDIUM"
-			ip=extract_ip(auth_line)
-			user=extract_user(auth_line)
-			record_event(event_type,severity,ip)
-		elif "Accepted password" in auth_line or "Accepted publickey" in auth_line:
-			event_type="LOGIN_SUCCESS"
-			severity="LOW"
-			ip=extract_ip(auth_line)
-			user=extract_user(auth_line)
-		#else:
-			#continue
+		event_type = None
+		severity = None
+		ip = None
+		user = None
 		timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		print(f"[{timestamp}] {event_type} | {severity} | IP : {ip} | User : {user}")
+		result=detect_auth_event(auth_line)
+		if result:
+			event_type,severity,ip,user=result
+			print(f"[{timestamp}] {event_type} | {severity} | IP : {ip} | User : {user}")
 
 		#Brute force detection logic
 		if event_type=="SSH_FAILURE":
@@ -155,10 +184,8 @@ try:
 				print(f"[{timestamp}] {event_type} | {severity} | IP : {ip} | 5 failures in 60 seconds")
 
 		#Port scan detection logic
-		print(sys_line)
 		result=detect_ufw(sys_line)
 		if result:
-			print(result)
 			src_ip,dpt=result
 			if src_ip not in port_scan_dict:
 				port_scan_dict[src_ip]=set()
@@ -179,6 +206,27 @@ try:
 				print(f"[{timestamp}] {event_type} | {severity} | IP : {src_ip}")
 				record_event(event_type,severity,src_ip)
 
+		if event_type and  event_type=="LOGIN_SUCCESS":
+			if ip in ip_failure and len(ip_failure[ip])>=5:
+				event_type="LATERAL_MOVEMENT"
+				severity="CRITICAL"
+				record_event(event_type,severity,ip)
+				print(f"[{timestamp}] {event_type} | {severity} | IP : {ip}")
+
+		if sys_line and detect_sql_injection(sys_line):
+			event_type="SQL_INJECTION"
+			severity="CRITICAL"
+			ip=extract_ip(sys_line)
+			record_event(event_type,severity,ip)
+			print(f"[{timestamp}] {event_type} | {severity} | IP : {ip}")
+
+#		if sys_line and detect_http_probe(sys_line):
+#			event_type="HTTP_PROBE"
+#			severity="LOW"
+#			ip=extract_ip(sys_line)
+#			record_event(event_type,severity,ip)
+#			print(f"[{timestamp}] {event_type} | {severity} | IP : {ip}")
+
 		#Printing the summary like total event types, top 3 attackin ips, highest severe event, priority score.
 		if time.time()-last_report>=60:
 			print("\n=======SUMMARY=======\n")
@@ -192,7 +240,8 @@ try:
 				print(max_ip,temp[max_ip])
 				del temp[max_ip]
 			print("\nHighest severity event")
-			print(highest_event," | ",highest_severity)
+			print(f"{highest_event} | {highest_severity}")
+			print()
 			for ip in ip_data:
 				score,priority,recommendation=calculate_score(ip)
 				print(f"IP : {ip} | Score : {score} | Priority : {priority} | Recommendation : {recommendation}")
@@ -206,6 +255,8 @@ try:
 			last_report=time.time()
 
 except Exception as e:
+	import traceback
+	traceback.print_exc()
 	print("Error: ",e)
 finally:
 	auth_file.close()
