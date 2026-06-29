@@ -67,13 +67,7 @@ def detect_http_probe(line):
 	return False
 
 def detect_process_anomaly(line):
-	if "pam_unix" in line.lower() and "authentication failure" in line.lower():
-		return True
-	elif "not in sudoers" in line.lower():
-		return True
-	elif "execve" in line.lower() and "/tmp/" in line.lower():
-		return True
-	return False
+	if "pam_unix" in line.lower() and "authentic
 
 #Record the events and finding the highest sever event
 def record_event(event_type,severity,ip):
@@ -229,20 +223,20 @@ try:
 
 		if access_line and detect_sql_injection(access_line):
 			event_type="SQL_INJECTION"
-			severity="HIGH"
+			severity="CRITICAL"
 			ip=extract_ip(access_line)
 			record_event(event_type,severity,ip)
 			print(f"[{timestamp}] {event_type} | {severity} | IP : {ip}")
 
 		if access_line and detect_http_probe(access_line):
 			event_type="HTTP_PROBE"
-			severity="MEDIUM"
+			severity="LOW"
 			ip=extract_ip(access_line)
 			record_event(event_type,severity,ip)
 			print(f"[{timestamp}] {event_type} | {severity} | IP : {ip}")
 
 		if sys_line and detect_process_anomaly(sys_line):
-			event_type="PROCESS_ANOMALY"
+			evnet_type="PROCESS_ANOMALY"
 			severity="HIGH"
 			ip=extract_ip(sys_line)
 			record_event(event_type,severity,ip)
