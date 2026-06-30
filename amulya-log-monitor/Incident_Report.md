@@ -1,13 +1,15 @@
 INCIDENT REPORT
 
-Incident ID:
-Date:
-Time:
-Analyst name:
-Container name:
+Date:26-jun-2026
+
+Time:14:05
+
+Analyst name: Amulya
+
 Attacker IP: 185.220.101.47
-Overall severity:
+
 Incident status: Closed
+
 CERT reportable: No
 
 Executive summary
@@ -207,6 +209,7 @@ Incident timeline
 [2026-06-26 14:12:12] HTTP_PROBE | MEDIUM | IP : 185.220.101.47
 [2026-06-26 14:12:23] PROCESS_ANOMALY | HIGH | IP : None
 
+
 Attack Details
 ---------------
 
@@ -214,55 +217,55 @@ Attack Details
 
 Multiple failed SSH authentication attempts were detected from the attacker IP targeting several usernames including admin, deploy, ubuntu, test, git, and bruteuser accounts. These events were identified using the authentication log by matching the "Failed password" pattern. Each failed login attempt was classified as Medium severity because repeated failures indicate credential guessing attempts.
 MITRE technique: T1110.001
-Killchain phase:
+Killchain phase: Delivery
  
 2.Brute Force Attack
 
 After five failed SSH login attempts within sixty seconds, the monitoring tool classified the activity as a Brute Force attack. The attack was assigned High severity because repeated authentication failures significantly increase the probability of unauthorized access if weak credentials exist.
 MITRE technique: T1110
-Killchain phase:
+Killchain phase: Delivery
 
-Root Attack
+3.Root Attack
 
 The attacker repeatedly attempted to authenticate using the root account. Since the root account has unrestricted administrative privileges, these attempts were classified as High severity and represent a significant threat to the server.
-MITRE technique:
-Killchain phase:
+MITRE technique: T1078.003
+Killchain phase: Exploitation
 
-Port Scan
+4.Port Scan
 
 The attacker sequentially scanned multiple ports including:
-21
-23
-25
-3306
-5432
-6379
-8080
-8443
-9200
-27017
+21,
+23,
+25,
+3306,
+5432,
+6379,
+8080,
+8443,
+9200,
+27017,
 135
 The monitoring tool detected scans by observing multiple UFW blocked connections from the same IP address to different destination ports. This activity indicates reconnaissance prior to exploitation.
-MITRE technique:
-Killchain phase:
+MITRE technique: T1595.001
+Killchain phase: Reconnaissance
 
-Firewall Block
+5.Firewall Block
 
 Firewall blocks were detected on sensitive services including ports 135, 445, and 3389. These ports are commonly associated with Windows RPC, SMB, and Remote Desktop Protocol services. The firewall successfully prevented unauthorized access attempts.
-MITRE technique:
-Killchain phase:
+MITRE technique: T1562.004
+Killchain phase: Weaponisation
 
-HTTP Probe
+6.HTTP Probe
 
 Several HTTP probing attempts were identified through the web server access logs. These requests indicate that the attacker attempted to discover vulnerable web resources before attempting exploitation. Such reconnaissance activity commonly precedes attacks such as SQL injection or directory traversal.
-MITRE technique:
-Killchain phase:
+MITRE technique: T1595.002
+Killchain phase:Reconnaissance
 
-Process Anomaly
+7.Process Anomaly
 
 A suspicious process execution event was detected through the system logs involving an EXECVE operation from the /tmp directory. Execution of binaries from temporary directories is commonly associated with malware or unauthorized payload execution and was therefore classified as High severity.
-MITRE technique:
-Killchain phase:
+MITRE technique: T1055
+Killchain phase: Installation
 
 
 Technical analysis
