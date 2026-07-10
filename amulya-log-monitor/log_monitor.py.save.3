@@ -1,22 +1,13 @@
 import re
 import time
 from datetime import datetime
-from flask import Flask,jsonify,request,Response
-import threading
-import json
+from flask import Flask,jsonify,request
 
 auth_log="/var/log/auth.log"
 sys_log="/var/log/syslog"
 access_log="/var/log/nginx/access.log"
 
 app=Flask(__name__)
-
-def start_flask():
-	app.run(
-		host="0.0.0.0",
-		port=5000,
-		use_reloader=False
-	)
 
 #Extracting ip address from auth.log
 def extract_ip(line):
@@ -141,22 +132,6 @@ def calculate_score(ip):
 		recommendation="Block the IP immediately"
 	return score,priority,recommendation
 
-#/events end point
-@app.route("/events",methods=["GET"])
-def get_events():
-	event_type = request.args.get("type")
-	if event_type:
-		filtered = []
-		for event in events:
-			if event["type"] == event_type:
-				filtered.append(event)
-		return Response(json.dumps(filtered, indent=4),mimetype="application/json")
-	return Response(json.dumps(events, indent=4),mimetype="application/json")
-
-@app.route("/stats",methods=["GET"])
-def get_stats():
-	return Response(json.dumps(event_count, indent=4),mimetype="application/json")
-
 ip_failure={}
 event_count = {}
 ip_count = {}
@@ -188,9 +163,21 @@ attack_weights = {
 }
 events = []
 
-flask_thread = threading.Thread(target=start_flask)
-flask_thread.daemon = True
-flask_thread.start()
+@app.route("/events", methods=["GET"])
+def get_events():
+
+    event_type = request.args.get("type")
+
+    if event_type:
+        filtered = []
+
+        for event in events:
+            if event["type"] == event_type:
+                filtered.append(event)
+
+        return jsonify(filtered)
+
+    return jsonify(events)
 
 #Detecting the events like ssh failure, root attack, login successful, brute force, port scan and printing the summary for every 60 seconds.
 try:
