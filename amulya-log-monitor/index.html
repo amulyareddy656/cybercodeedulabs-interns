@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Security Dashboard</title>
+
+<style>
+body{
+    background:#111111;
+    color:white;
+    font-family:Arial;
+    margin:20px
+}
+
+h1{
+    text-align:center;
+}
+
+.event{
+    border-radius:12px;
+    margin-bottom:20px;
+    padding:15px;
+    border-left:8px solid white;
+}
+
+.high{
+    background:#351515;
+    border-left-color:red;
+}
+
+.medium{
+    background:#403516;
+    border-left-color:orange;
+}
+
+.low{
+    background:#183a18;
+    border-left-color:limegreen;
+}
+
+.title{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.info{
+    margin-top:10px;
+}
+
+.badge{
+    float:right;
+    padding:5px 12px;
+    border-radius:8px;
+    background:black;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Security Monitoring Dashboard</h1>
+
+<div id="events"></div>
+
+<script>
+
+async function loadEvents(){
+
+    let response = await fetch("/api/events");
+
+    let data = await response.json();
+
+    let container = document.getElementById("events");
+
+    container.innerHTML="";
+
+    data.reverse();
+
+    for(let event of data){
+
+        let severity = event.severity.toLowerCase();
+
+        let card = document.createElement("div");
+
+        card.className="event "+severity;
+
+        card.innerHTML=`
+
+        <div class="title">
+
+        🚨 ${event.type}
+
+        <span class="badge">${event.severity}</span>
+
+        </div>
+
+        <div class="info">
+
+        <br>
+
+        Source IP :
+
+        ${event.src_ip}
+
+        <br><br>
+
+        Time :
+
+        ${event.timestamp}
+
+        <br><br>
+
+        MITRE :
+
+        ${event.mitre}
+
+        <br><br>
+
+        ${event.description}
+
+        </div>
+
+        `;
+
+        container.appendChild(card);
+
+    }
+
+}
+
+loadEvents();
+
+setInterval(loadEvents,10000);
+
+</script>
+
+</body>
+
+</html>

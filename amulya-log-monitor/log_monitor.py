@@ -157,6 +157,16 @@ def get_events():
 def get_stats():
 	return Response(json.dumps(event_count, indent=4),mimetype="application/json")
 
+@app.route("/")
+def dashboard():
+    with open("index.html", "r") as file:
+        return file.read()
+
+@app.route("/api/events")
+def api_events():
+    return jsonify(events)
+
+
 ip_failure={}
 event_count = {}
 ip_count = {}
