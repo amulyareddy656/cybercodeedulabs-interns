@@ -98,6 +98,26 @@ tr:nth-child(even){
 </div>
 
 <div class="card">
+<h2>Brute Force</h2>
+<p id="bruteForce">0</p>
+</div>
+
+<div class="card">
+<h2>Port Scans</h2>
+<p id="portScan">0</p>
+</div>
+
+<div class="card">
+<h2>Firewall Blocks</h2>
+<p id="firewallBlock">0</p>
+</div>
+
+<div class="card">
+<h2>HTTP Probes</h2>
+<p id="httpProbe">0</p>
+</div>
+
+<div class="card">
 <h2>Top Attacking IP</h2>
 <p id="topIP">-</p>
 </div>
@@ -142,6 +162,10 @@ async function loadEvents(){
     let ssh=0;
     let login=0;
     let root=0;
+    let brute=0;
+    let port=0;
+    let firewall=0;
+    let http=0;
 
     let ipCount={};
 
@@ -160,6 +184,18 @@ async function loadEvents(){
         if(event.type.toLowerCase().includes("root_attack"))
             root++;
 
+        if(event.type.toLowerCase().includes("brute"))
+            brute++;
+
+        if(event.type.toLowerCase().includes("port"))
+            port++;
+
+        if(event.type.toLowerCase().includes("firewall"))
+            firewall++;
+
+        if(event.type.toLowerCase().includes("http"))
+            http++;
+        
         ipCount[event.src_ip]=(ipCount[event.src_ip]||0)+1;
 
         table.innerHTML += `
@@ -175,6 +211,10 @@ async function loadEvents(){
     document.getElementById("sshFailure").innerText=ssh;
     document.getElementById("loginSuccess").innerText=login;
     document.getElementById("rootAttack").innerText=root;
+    document.getElementById("bruteForce").innerText=brute;
+    document.getElementById("portScan").innerText=port;
+    document.getElementById("firewallBlock").innerText=firewall;
+    document.getElementById("httpProbe").innerText=http;
 
     let max=0;
     let top="-";
